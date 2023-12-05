@@ -15,39 +15,48 @@ const catInfo = document.querySelector('.cat-info');
 const loader = document.querySelector('.loader');
 const error = document.querySelector('.error');
 
-loader.classList.replace('loader', 'is-hidden');
+
 loader.innerText = '';
 error.classList.add('is-hidden');
 catInfo.classList.add('is-hidden');
 
-let arrBreedsId = [];
 
-fetchBreeds()
-.then(data => {
-    data.forEach(item => {
-        arrBreedsId.push({text: item.name, value: item.id});
-        console.log(arrBreedsId)
-    });
-    new SlimSelect({
-        select: selector,
-        data: arrBreedsId
-    });
-})
-.catch(onError)
 
-selector.addEventListener('change', onSelectBreed);
+selector.addEventListener('change',onSelectBreed);
+
+updateSelect();
+
+function updateSelect (data) {
+    fetchBreeds(data)
+    .then(data => {
+        loader.classList.replace('loader', 'is-hidden');
+        let markSelect = data.map(({ name, id }) => {
+            return `<option value ='${id}'>${name}</option>`;
+        });
+        selector.insertAdjacentHTML("beforeend",  markSelect)
+        
+        new SlimSelect({
+            select: selector,
+        });
+    })
+    .catch(onError)
+
+}
+
 
 function onSelectBreed(event) {
     loader.classList.replace('is-hidden', 'loader');
     selector.classList.add('is-hidden');
     catInfo.classList.add('is-hidden');
-
-    const breedId = event.currentTarget.value;
+    const breedId = event.target.value;
+    
     fetchCatByBreed(breedId)
     .then(data => {
+        console.log(data)
         loader.classList.replace('loader', 'is-hidden');
         selector.classList.remove('is-hidden');
         const { url, breeds } = data[0];
+        console.log(data[-1])
         
         catInfo.innerHTML = 
         `<div class="box-img">
@@ -64,6 +73,7 @@ function onSelectBreed(event) {
         catInfo.classList.remove('is-hidden');
     })
     .catch(onError);
+    
 };
 
 function onError() {
